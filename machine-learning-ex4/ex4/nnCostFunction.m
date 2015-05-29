@@ -61,27 +61,50 @@ Theta2_grad = zeros(size(Theta2));
 %               the regularization separately and then add them to Theta1_grad
 %               and Theta2_grad from Part 2.
 %
-X = [ones(m,1) X];
-a2 = sigmoid(Theta1*X');
-a2 = [ones(1, size(a2, 2)); a2];
-h = sigmoid(Theta2*a2);
-J = 1/m*(sum(-y'*log(a2)-(1-y')*log(1-a2)) + ...
-    sum(-y'*log(h)-(1-y')*log(1-h)));
+
+% FEEDFORWARD
+% input layer (sample size x feature weight size)
+a1 = [ones(m,1) X];
+
+% hidden layer ('' x '')
+z2 = a1*Theta1';
+a2 = sigmoid(z2);
+a2 = [ones(m,1) a2];
+
+% output layer, a3 ('' x '')
+z3 = a2*Theta2';
+h = sigmoid(z3);
+
+% cost summed over k outputs
+for k = 1:num_labels
+    yk = y == k;
+    hk = h(:, k);
+    Jk = 1/m * (-yk'*log(hk) - (1-yk')*log(1-hk));
+    J = J + Jk;
+end
+
+% regularized cost
+J = J + lambda/(2*m) * (sum(sum(Theta1(:, 2:end).^2))...
+    + sum(sum(Theta2(:, 2:end).^2)));
 
 
+% BACKPROPAGATION
+% hypothesis error term (sample size x layer size) 
+delta_3 = h;
+for k = 1:num_labels
+    yk = y == k;
+    delta_3(:, k) = delta_3(:, k) - yk;
+end
 
+% hidden layer error term ('' x '')
+% NOTE: do not include bias term (theta0)
+delta_2 = delta_3*Theta2(:, 2:end) .* sigmoidGradient(z2);
+    
+Theta1_grad = (Theta1_grad + delta_2'*a1)/m;
+Theta2_grad = (Theta2_grad + delta_3'*a2)/m;
 
-
-
-
-
-
-
-
-
-
-
-
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + lambda/m * Theta1(:, 2:end);
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + lambda/m * Theta2(:, 2:end);
 
 % -------------------------------------------------------------
 
