@@ -216,5 +216,15 @@ for i = 1:length(lambda_vec)
             lambda_vec(i), error_train(i), error_val(i));
 end
 
+%% compute test set error for best lambda value
+[M, I] = min(error_val);
+best_lambda = lambda_vec(I);
+theta = trainLinearReg(X_poly, y, best_lambda);
+
+error_test = linearRegCostFunction(X_poly_test, ytest, theta, 0);
+
+fprintf('best lambda = %f\n', best_lambda);
+fprintf('Test error = %f\n', error_test);
+
 fprintf('Program paused. Press enter to continue.\n');
 pause;
